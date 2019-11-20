@@ -1,7 +1,7 @@
 # Личный проект «TaskForce»
 
 * Студент: [Евгений Сомов](https://up.htmlacademy.ru/yii/1/user/982685).
-* Наставник: `Неизвестно`.
+* Наставник: [Василий Баукин](https://htmlacademy.ru/profile/tebazil).
 
 ---
 
