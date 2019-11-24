@@ -1,0 +1,19 @@
+{
+    "name": "htmlacademy-yii/982685-task-force-1",
+    "description": "Личный проект «TaskForce» для обучения на профессиональном онлайн‑курсе «PHP, уровень 2» от HTML Academy.",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Somov Eugene",
+            "email": "somov.eugene.2012@gmail.com"
+        }
+    ],
+    "require": {},
+    "require-dev": {},
+    "autoload": {
+      "psr-4": {
+        "taskforce\\": "src/"
+      }
+    }
+}
