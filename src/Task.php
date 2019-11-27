@@ -7,7 +7,7 @@ class Task
      * список всех доступных статусов задач
      */
     const STATUS_NEW = 'new';               // Новое - задание опубликовано, исполнитель ещё не найден
-    const STATUS_CANCELED = 'canceled';     // Отменено - заказчик отменил задание
+    const STATUS_CANCELLED = 'cancelled';   // Отменено - заказчик отменил задание
     const STATUS_PROGRESS = 'progress';     // В работе - заказчик выбрал исполнителя для задания
     const STATUS_COMPLETED = 'completed';   // Выполнено - заказчик отметил задание как выполненное
     const STATUS_FAILED = 'failed';         // Провалено - исполнитель отказался от выполнения задания
@@ -42,13 +42,14 @@ class Task
      * @param int $id_customer ID заказчика
      * @param int $id_executor ID исполнителя
      * @param string $completion_date Срок завершения задачи
+     * @param string $status Статус задачи
      */
-    public function __construct(int $id_customer, ?int $id_executor = null, ?string $completion_date = null)
+    public function __construct(int $id_customer, ?int $id_executor = null, ?string $completion_date = null, ?string $status = self::STATUS_NEW)
     {
         $this->id_customer = $id_customer;
         $this->id_executor = $id_executor;
         $this->completion_date = $completion_date;
-        $this->current_status = self::STATUS_NEW;
+        $this->current_status = $status;
     }
 
     // МЕТОДЫ класса
@@ -57,7 +58,7 @@ class Task
      * Возвращает список действий
      * @return array
      */
-    public function get_actions(): array
+    public function getActions(): array
     {
         return [self::ACTION_CANCEL, self::ACTION_APPOINT, self::ACTION_COMPLETE, self::ACTION_RESPOND, self::ACTION_REFUSE];
     }
@@ -65,24 +66,24 @@ class Task
     /** Возвращает список статусов
      * @return array
      */
-    public function get_statuses(): array
+    public function getStatuses(): array
     {
-        return [self::STATUS_NEW, self::STATUS_CANCEL, self::STATUS_PROGRESS, self::STATUS_COMPLETED, self::STATUS_FAILED];
+        return [self::STATUS_NEW, self::STATUS_CANCELLED, self::STATUS_PROGRESS, self::STATUS_COMPLETED, self::STATUS_FAILED];
     }
 
     /** Возвращает статус, в который перейдет задача для указанного действия
      * @param string $action Действие
      * @return string|null Статус задачи
      */
-    public function get_next_status(string $action): string
+    public function getNextStatus(string $action): string
     {
         // доступные действия и изменение состояния задачи
         $links = [
-            self::ACTION_CANCEL => STATUS_CANCELED,
+            self::ACTION_CANCEL => STATUS_CANCELLED,
             self::ACTION_APPOINT => STATUS_PROGRESS,
             self::ACTION_COMPLETE => STATUS_COMPLETED,
             self::ACTION_REFUSE => STATUS_FAILED,
-            self::ACTION_RESPOND => $this->current_status
+            self::ACTION_RESPOND => null
         ];
 
         if (array_key_exists($action, $links)) {
