@@ -17,5 +17,5 @@ $task = new Task(1, null, '2019-12-01');
 /*
  * Вызов метода объекта, чтобы продемонстрировать успешную загрузку
  */
-$аvailable_actions = $task -> get_actions();
+$аvailable_actions = $task -> getActions();
 var_dump($аvailable_actions);
