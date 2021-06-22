@@ -1,7 +1,7 @@
 # Личный проект «TaskForce»
 
 * Студент: [Евгений Сомов](https://up.htmlacademy.ru/yii/1/user/982685).
-* Наставник: [Дмитрий Крутько](https://htmlacademy.ru/profile/id187875).
+* Наставник: [Сергей Парфенов](https://htmlacademy.ru/profile/id926645).
 
 ---
 
