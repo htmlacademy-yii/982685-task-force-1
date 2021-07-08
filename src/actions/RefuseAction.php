@@ -6,27 +6,23 @@ namespace taskforce\actions;
  */
 class RefuseAction extends AbstractAction
 {
+    protected string $name;
+    protected string $internalName;
+
+    /**
+     * КОНСТРУКТОР класса
+     */
+    public function __construct()
+    {
+        $this->name = 'Отказаться';
+        $this->internalName = 'refuse';
+    }
+
     /**
      * @inheritDoc
      */
     public static function isAllowed(int $userId, int $customerId, ?int $executorId = null): bool
     {
         return $executorId && ($userId === $executorId);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getName(): string
-    {
-        return 'Отказаться';
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getInternalName(): string
-    {
-        return 'refuse';
     }
 }

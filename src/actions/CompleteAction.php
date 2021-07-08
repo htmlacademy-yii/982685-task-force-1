@@ -6,27 +6,23 @@ namespace taskforce\actions;
  */
 class CompleteAction extends AbstractAction
 {
+    protected string $name;
+    protected string $internalName;
+
+    /**
+     * КОНСТРУКТОР класса
+     */
+    public function __construct()
+    {
+        $this->name = 'Выполнено';
+        $this->internalName = 'complete';
+    }
+
     /**
      * @inheritDoc
      */
     public static function isAllowed(int $userId, int $customerId, ?int $executorId = null): bool
     {
         return $userId === $customerId;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getName(): string
-    {
-        return 'Выполнено';
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getInternalName(): string
-    {
-        return 'complete';
     }
 }
