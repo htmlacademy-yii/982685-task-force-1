@@ -1,7 +1,7 @@
 <?php
 namespace taskforce\model;
 
-use taskforce\actions\{AppointAction, CancelAction, ChatAction, CompleteAction, RefuseAction, RespondAction};
+use taskforce\actions\{AbstractAction, AppointAction, CancelAction, ChatAction, CompleteAction, RefuseAction, RespondAction};
 
 class Task
 {
@@ -22,31 +22,18 @@ class Task
     const ACTION_CHAT = ChatAction::class;
 
     /**
-     * доступные действия и изменения состояния задания
+     * изменения состояния задания
      */ 
-    const STATUSES_MAP = [
-        self::STATUS_NEW => 'новое',
-        self::STATUS_CANCELLED => 'отменено',
-        self::STATUS_PROGRESS => 'в работе',
-        self::STATUS_COMPLETED => 'выполнено',
-        self::STATUS_FAILED => 'провалено',
-    ];
-    
-    const ACTIONS_MAP = [
-        self::ACTION_CANCEL => 'отменить',
-        self::ACTION_APPOINT => 'назначить',
-        self::ACTION_COMPLETE => 'выполнено',
-        self::ACTION_REFUSE => 'отказаться',
-        self::ACTION_CHAT  => 'отправить',
-    ];
-
     const NEXT_STATUSES_MAP = [
-        self::ACTION_CANCEL => self::STATUS_CANCELLED,
-        self::ACTION_APPOINT => self::STATUS_PROGRESS,
-        self::ACTION_COMPLETE => self::STATUS_COMPLETED,
-        self::ACTION_REFUSE => self::STATUS_FAILED,
+        'cancel' => self::STATUS_CANCELLED,
+        'appoint' => self::STATUS_PROGRESS,
+        'complete' => self::STATUS_COMPLETED,
+        'refuse' => self::STATUS_FAILED,
     ];
 
+    /**
+     * доступные действия в зависимости от состояния задания
+     */
     const AVAILABLE_ACTIONS_MAP = [
         self::STATUS_NEW => [               // НОВОЕ ЗАДАНИЕ:
             self::ACTION_CANCEL,            // Заказчик может отменить задание
@@ -99,31 +86,22 @@ class Task
     }
 
     /** 
-     * Возвращает список всех состояний задания
-     * @return array
+     * Устанавливает статус для задания
+     * @param string $status                Новый статус задания
      */
-    public function getStatuses(): array
+    public function setStatus(string $status): void
     {
-        return self::STATUSES_MAP;
+        $this->status = $status;
     }
-    
+
     /**
-     * Возвращает список всех действий, которые можно выполнить над заданием
-     * @return array
-     */
-    public function getActions(): array
-    {
-        return self::ACTIONS_MAP;
-    }
-    
-    /**
-     * Возвращает статус, в который перейдёт задача после указанного действия
-     * @param string $action                Действие
+     * Возвращает статус, в который перейдёт задание после указанного действия
+     * @param AbstractAction $action        Действие
      * @return string|null
      */
-    public function getNextStatus(string $action): ?string
+    public function getNextStatus(AbstractAction $action): ?string
     {
-        return self::NEXT_STATUSES_MAP[$action] ?? null;
+        return self::NEXT_STATUSES_MAP[$action->getInternalName()] ?? null;
     }
 
     /**
@@ -132,7 +110,7 @@ class Task
      * @param string $status                Статус задания
      * @return array|null                   Список доступных действий или null, если действия отсутствуют
      */
-    public function getAvailableActions(int $userId, string $status): ?array
+    public function getActions(int $userId, string $status): ?array
     {
         if (!isset(self::AVAILABLE_ACTIONS_MAP[$status])) {
             return null;
@@ -142,5 +120,5 @@ class Task
             function ($action) use ($userId) {
                 return $action::isAllowed($userId, $this->customerId, $this->executorId);
             });
-    }
+    }   
 }
