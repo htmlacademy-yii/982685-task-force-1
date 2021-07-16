@@ -16,6 +16,7 @@ assert_options(ASSERT_WARNING, 1);      // вывод предупреждени
  */
 use taskforce\model\Task;
 use taskforce\actions\{AppointAction, CancelAction, ChatAction, CompleteAction, RefuseAction, RespondAction};
+use taskforce\exceptions\{TaskActionException, TaskStatusException};
 
 /*
  * подключаем сценарий автозагрузки от Composer
@@ -63,3 +64,34 @@ assert(is_null($task->getActions($userId, Task::STATUS_COMPLETED)), 'STATUS_COMP
 assert(is_null($task->getActions($userId, Task::STATUS_FAILED)), 'STATUS_FAILED: нет действия');
 
 echo 'Все проверки пройдены';
+
+// проверка исключений TaskStatusException
+try {
+    $task->getActions($customerId, "Unknown_Status");
+} catch (TaskStatusException $e) {
+    echo "Проверка статуса: " . $e->getMessage();
+}
+
+// проверка исключений TaskActionException
+try {
+    $nextStatus = $task->getNextStatus($actionAppoint);
+    echo "Следующий статус: " . $nextStatus;
+    $task->setStatus($nextStatus);
+} catch (TaskActionException $e) {
+    echo "Проверка действия Appoint: " . $e->getMessage();
+}
+
+try {
+    $nextStatus = $task->getNextStatus($actionRefuse);
+    echo "Следующий статус: " . $nextStatus;
+    $task->setStatus($nextStatus);
+} catch (TaskActionException $e) {
+    echo "Проверка действия Refuse: " . $e->getMessage();
+}
+
+try {
+    $nextStatus = $task->getNextStatus($actionChat);
+    echo "Следующий статус: " . $nextStatus;
+} catch (TaskActionException $e) {
+    echo "Проверка действия Chat: " . $e->getMessage();
+}
