@@ -2,6 +2,7 @@
 namespace taskforce\model;
 
 use taskforce\actions\{AbstractAction, AppointAction, CancelAction, ChatAction, CompleteAction, RefuseAction, RespondAction};
+use taskforce\exceptions\{TaskStatusException, TaskActionException};
 
 class Task
 {
@@ -23,7 +24,7 @@ class Task
 
     /**
      * изменения состояния задания
-     */ 
+     */
     const NEXT_STATUSES_MAP = [
         'cancel' => self::STATUS_CANCELLED,
         'appoint' => self::STATUS_PROGRESS,
@@ -63,18 +64,69 @@ class Task
 
     /**
      * КОНСТРУКТОР класса
-     * @param int $customerId               ID заказчика (существует всегда)
+     * @param int $customerId               ID заказчика
+     * @param int $executorId               ID исполнителя
      * @param string $completionDate        Срок завершения задания (может отсутствовать)
      */
-    public function __construct(int $customerId, ?string $completionDate = null)
+    public function __construct(int $customerId, ?int $executorId = null, ?string $completionDate = null)
     {
         $this->customerId = $customerId;
-        $this->executorId = null;           // для нового задания исполнитель отсутствует
+        $this->executorId = $executorId;    // для нового задания исполнитель отсутствует
         $this->completionDate = $completionDate;
         $this->status = self::STATUS_NEW;
     }
 
     // МЕТОДЫ класса
+
+    /**
+     * Возвращает список статусов
+     * @return array
+     */
+    public function getStatuses(): array
+    {
+        return [self::STATUS_NEW, self::STATUS_CANCELLED, self::STATUS_PROGRESS, self::STATUS_COMPLETED, self::STATUS_FAILED];
+    }
+
+    /**
+     * Возвращает статус, в который перейдёт задание после указанного действия
+     * @param AbstractAction $action        Действие
+     * @return string
+     * @throws TaskActionException          Исключение, если передано неверное действие
+     */
+    public function getNextStatus(AbstractAction $action): ?string
+    {
+        if (!array_key_exists($action->getInternalName(), self::NEXT_STATUSES_MAP)) {
+            throw new TaskActionException("Передано неверное действие");
+        }
+
+        return self::NEXT_STATUSES_MAP[$action->getInternalName()];
+    }
+
+    /**
+     * Возвращает список доступных действий для указанного пользователя и статуса задания
+     * @param int $userId                   ID пользователя
+     * @param string $status                Статус задания
+     * @return array|null                   Список доступных действий или null, если действия отсутствуют
+     * @throws TaskStatusException          Исключение, если будет передан несуществующий статус
+     */
+    public function getActions(int $userId, string $status): ?array
+    {
+
+        if (!in_array($status, $this->getStatuses())) {
+            throw new TaskStatusException("Передан неизвестный статус задания");
+        }
+
+        if (!isset(self::AVAILABLE_ACTIONS_MAP[$status])) {
+            return null;
+        }
+
+        return array_filter(
+            self::AVAILABLE_ACTIONS_MAP[$status],
+            function ($action) use ($userId) {
+                return $action::isAllowed($userId, $this->customerId, $this->executorId);
+            }
+        );
+    }
 
     /** 
      * Устанавливает исполнителя для задания
@@ -91,34 +143,10 @@ class Task
      */
     public function setStatus(string $status): void
     {
-        $this->status = $status;
-    }
-
-    /**
-     * Возвращает статус, в который перейдёт задание после указанного действия
-     * @param AbstractAction $action        Действие
-     * @return string|null
-     */
-    public function getNextStatus(AbstractAction $action): ?string
-    {
-        return self::NEXT_STATUSES_MAP[$action->getInternalName()] ?? null;
-    }
-
-    /**
-     * Возвращает список доступных действий для указанного пользователя и статуса задания
-     * @param int $userId                   ID пользователя
-     * @param string $status                Статус задания
-     * @return array|null                   Список доступных действий или null, если действия отсутствуют
-     */
-    public function getActions(int $userId, string $status): ?array
-    {
-        if (!isset(self::AVAILABLE_ACTIONS_MAP[$status])) {
-            return null;
+        if (!in_array($status, $this->getStatuses())) {
+            throw new TaskStatusException("Передан неизвестный статус задания");
         }
 
-        return array_filter(self::AVAILABLE_ACTIONS_MAP[$status],
-            function ($action) use ($userId) {
-                return $action::isAllowed($userId, $this->customerId, $this->executorId);
-            });
-    }   
+        $this->status = $status;
+    }
 }
