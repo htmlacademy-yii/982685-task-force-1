@@ -3,6 +3,8 @@ namespace taskforce\utils;
 
 use taskforce\exceptions\{FileImportException, FileFormatException};
 use SplFileObject;
+use RuntimeException;
+use LogicException;
 
 abstract class AbstractCsvConverter
 {
@@ -24,7 +26,7 @@ abstract class AbstractCsvConverter
     }
 
     /**
-     * Считывает данные из CSV-файла и преобразует их в SQL запросы для добавления в MySQL
+     * Считывает данные из CSV-файла, преобразует их в SQL запросы для добавления в MySQL и сохраняет их в файле .sql
      * @throws FileFormatException          исключение в случае неправильного формата исходного файла
      * @throws FileImportException          исключение в случае ошибок работы с файлами
      */
@@ -40,8 +42,10 @@ abstract class AbstractCsvConverter
 
         try {
             $this->srcFileObject = new SplFileObject($this->filename);
-        } catch (FileImportException $e) {
+        } catch (RuntimeException $e) {
             throw new FileImportException("Не удалось открыть файл на чтение: " . $e->getMessage());
+        } catch (LogicException $e) {
+            throw new FileImportException("Переданный файл является каталогом: " . $e->getMessage());
         }
         
         $this->srcFileObject->setFlags(SplFileObject::READ_CSV | SplFileObject::DROP_NEW_LINE);
@@ -63,12 +67,12 @@ abstract class AbstractCsvConverter
         
         // проверяем, существует ли подкаталог 'sql'
         // если нет, то создаем
-        $subdir = $pathParts['dirname'] . "\\sql";
+        $subdir = $pathParts['dirname'] . DIRECTORY_SEPARATOR ."sql";
         if (!is_dir($subdir)) {
             mkdir($subdir);
         }
         
-        $destFilename = $pathParts['dirname'] . "\\sql\\" . $pathParts['filename'] . ".sql";
+        $destFilename = $pathParts['dirname'] . DIRECTORY_SEPARATOR . "sql" . DIRECTORY_SEPARATOR . $pathParts['filename'] . ".sql";
         
         if (file_exists($destFilename)) {
             if (!is_writable($destFilename)) {
@@ -78,8 +82,9 @@ abstract class AbstractCsvConverter
 
         try {
             $this->destFileObject = new SplFileObject($destFilename, 'w');
-            $this->destFileObject->fwrite($sql);
-        } catch (FileImportException $e) {
+
+            $this->destFileObject->fwrite($sql);       
+        } catch (RuntimeException $e) {
             throw new FileImportException("Не удалось записать файл: " . $e->getMessage());
         }
     }
