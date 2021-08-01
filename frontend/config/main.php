@@ -45,5 +45,7 @@ return [
         ],
         */
     ],
+    'language' => 'ru-RU',
+    'name' => 'TaskForce',
     'params' => $params,
 ];
