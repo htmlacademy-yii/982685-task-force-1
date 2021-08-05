@@ -20,7 +20,7 @@ Vue.component('chat', {
       console.error("Не передан идентификатор задания (атрибут task) в теге 'chat'")
     }
     else {
-      this.api_url = '/index.php/api/messages';
+      this.api_url = '/index.php/api/messages?id=' + this.task;
       this.getMessages();
     }
   },
@@ -28,7 +28,7 @@ Vue.component('chat', {
     sendMessage: function() {
       fetch(this.api_url, {
         method: 'POST',
-        body: JSON.stringify({message: this.message, task_id: this.task})
+        body: JSON.stringify({message: this.message})
       })
       .then(result => {
         if (result.status !== 201) {
@@ -46,7 +46,7 @@ Vue.component('chat', {
       })
     },
     getMessages: function () {
-      fetch(this.api_url + '?task_id=' + this.task)
+      fetch(this.api_url)
       .then(result => {
         if (result.status !== 200) {
           return Promise.reject(new Error('Запрошенный ресурс не существует'));
